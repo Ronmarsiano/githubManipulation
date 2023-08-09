@@ -23,13 +23,18 @@ function readDir(dirPath,yaml_keys,result) {
   });
 }
 
-function hasAllKeys (data,yaml_keys){
-    var result = true;
+function hasOneKey (data,yaml_keys){
+    var result = false;
     yaml_keys.forEach((key) => {
-        if(!data.hasOwnProperty(key)){
-            result = false;
+        if(data.hasOwnProperty(key)){
+            result = true;
         }
     });
+    // // data must have this 3 properties to be a valid tempalte
+    // if (data.hasOwnProperty('id') && data.hasOwnProperty('name')&& data.hasOwnProperty('description')){
+    //     return false;
+    // }
+
     return result;
 }
 
@@ -39,7 +44,7 @@ function readYamlFile(filePath,yaml_keys, result) {
         const fileContent = fs.readFileSync(filePath, 'utf8');
         const data = yaml.load(fileContent);
        
-        if (data != null && hasAllKeys(data,yaml_keys)){
+        if (data != null && hasOneKey(data,yaml_keys)){
             fileNameToken = 'FileName'
             if (fileNameToken in result){
                 result[fileNameToken].push(filePath)
@@ -50,11 +55,15 @@ function readYamlFile(filePath,yaml_keys, result) {
     
             yaml_keys.forEach((key) => {
     
-                if (key in result){
+                if (data.hasOwnProperty(key) && key in result){
+
                     result[key].push(data[key])
                 }
                 else{
-                    result[key] = [data[key]];
+                    if(data.hasOwnProperty(key)){
+                        result[key] = [data[key]];
+                    }
+                    
                 }
             });
         }
@@ -73,14 +82,6 @@ function readYamlFile(filePath,yaml_keys, result) {
     }
   }
   
-
-
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
-
 function writeExcelFile(resultJson){
     workbook = new ExcelJS.Workbook();
     worksheet = workbook.addWorksheet('Sheet1');
@@ -103,6 +104,11 @@ function writeExcelFile(resultJson){
     workbook.xlsx.writeFile('output.xlsx');
 }
 
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
 rl.question('Enter directory name: ', (dirName) => {
     var yaml_keys;
     var result={};
@@ -116,7 +122,3 @@ rl.question('Enter directory name: ', (dirName) => {
     });
    
 });
-
-
-"/Users/romarsia/cloneArea/githubManipulation"
-"id,version"
